@@ -1,0 +1,47 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sign In</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-900 text-white font-sans flex items-center justify-center min-h-screen">
+
+    <div class="bg-gray-800 rounded-lg shadow-xl p-10 max-w-md w-full transform transition-all duration-300 ease-in-out hover:scale-105">
+        <h1 class="text-4xl font-semibold text-center text-gray-100 mb-6">
+            Sign In
+        </h1>
+        <p class="text-lg text-center text-gray-400 mb-6">Please enter your login credentials.</p>
+
+        <form id="sign-in-form" class="space-y-6">
+            <div>
+                <label for="username" class="block text-left text-gray-300 font-medium mb-2">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your Username"
+                    class="block w-full px-5 py-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all ease-in-out duration-300" required>
+            </div>
+
+            <div>
+                <label for="password" class="block text-left text-gray-300 font-medium mb-2">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your Password"
+                    class="block w-full px-5 py-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all ease-in-out duration-300" required>
+
+                <!-- Show password toggle -->
+                <div class="mt-2 flex items-center space-x-2">
+                    <input type="checkbox" id="show-password" class="text-pink-500 rounded border-gray-600 focus:ring-2 focus:ring-pink-500">
+                    <label for="show-password" class="text-sm text-gray-400">Show Password</label>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-6">
+                <button type="submit"
+                        class="w-full py-3 px-6 bg-gray-700 text-white rounded-md shadow-lg transform transition-all duration-300 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                    Sign In
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="JS/signin.js"></script>
+    </body>
+    </html>

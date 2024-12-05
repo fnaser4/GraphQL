@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reboot's Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen">
+    <nav class="bg-gray-800 bg-opacity-90 p-4 shadow-lg sticky top-0 z-50 backdrop-filter backdrop-blur-lg">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <div class="flex items-center space-x-2">
+                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+                    Reboot Profile
+                </h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button id="profile-btn" class="flex items-center space-x-2 px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A12.037 12.037 0 0012 21c2.21 0 4.315-.588 6.121-1.596M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 10a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-white font-medium">Profile</span>
+                    </button>
+                    <!-- Dropdown -->
+                    <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-gray-700 rounded-lg shadow-lg py-4 text-gray-300 z-50">
+                        <div class="px-4 py-2 border-b border-gray-600">
+                            <h3 class="text-lg font-semibold text-white">User Details</h3>
+                        </div>
+                        <div class="px-4 py-4   ">
+                            <p><span class="font-bold">Username:</span> <span id="username">johndoe</span></p>
+                            <p><span class="font-bold">Name:</span> <span id="firstname">John</span></p>
+                            <p><span class="font-bold">Campus:</span> <span id="campus">Bahrain Campus</span></p>
+                            <p><span class="font-bold">Email:</span> <span id="email">johndoe@example.com</span></p>
+                            <br>
+                            <button id="logout-btn" class="px-6 py-2 bg-gradient-to-r from-pink-600 to-pink-700 rounded-lg hover:from-pink-700 hover:to-pink-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+    
+
+    <main class="container mx-auto p-6 space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- XP Progress Chart -->
+            <!-- -------------something here ------------- -->
+             <!-- Audit Stats with Gradient Border -->
+             <div class="relative p-[1px] rounded-xl bg-gradient-to-r from-violet-500/50 via-blue-500/50 to-violet-500/50 w-full">
+                <div class="bg-zinc-900/90 rounded-xl p-8">
+                    <h2 class="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-4">
+                        Audit Ratio
+                    </h2>
+                    
+                    <div class="space-y-8">
+                        <!-- Ratio Display -->
+                        <div class="text-center bg-gradient-to-b from-violet-500/10 to-blue-500/10 rounded-lg p-6 border border-zinc-800">
+                            <div id="audit-ratio" class="text-5xl bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text  font-bold">0.00</div>
+                            <div id="audit-message" class="text-zinc-400 mt-2">Make more audits!</div>
+                        </div>
+    
+                        <!-- Progress Bars -->
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between text-zinc-400 mb-2">
+                                    <span>Done</span>
+                                    <span id="audit-made-value-right">0 KB</span>
+                                </div>
+                                <div class="h-2 bg-zinc-800 rounded-full">
+                                    <div id="audit-made-bar" class="h-full bg-gradient-to-r from-pink-500 to-pink-700 rounded-full transition-all duration-500"></div>
+                                </div>
+                            </div>
+    
+                            <div>
+                                <div class="flex justify-between text-zinc-400 mb-2">
+                                    <span>Received</span>
+                                    <span id="audit-received-value-right">0 KB</span>
+                                </div>
+                                <div class="h-2 bg-zinc-800 rounded-full">
+                                    <div id="audit-received-bar" class="h-full bg-gradient-to-r from-pink-700 to-pink-500 rounded-full transition-all duration-500"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Chart -->
+            <div class="bg-gray-800 bg-opacity-50 rounded-xl p-6 shadow-xl backdrop-filter backdrop-blur-sm border border-gray-700 transform hover:scale-[1.02] transition-all duration-300">
+                <h2 class="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+                    Audit Performance
+                </h2>
+                <h3 class="text-sm font-medium text-pink-300 mt-2 mb-4">
+                    Total Audits Done: <span id="totalAuditsDone" class="font-bold"></span>
+                </h3>
+                <div id="audit-chart-container" class="h-64">
+                    <svg id="audit-chart" class="w-full h-full"></svg>
+                </div>
+            </div>
+
+
+        </div>
+    </main>
+    <script src="JS/dashboard.js"></script>
+</body>
+</html>
