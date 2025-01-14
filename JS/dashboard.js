@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     path
                     objectId
                 }
+                
             }
         }
     `;
@@ -44,25 +45,133 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(responseText);
     }
 
+    // -------------------------------------XP Per Project------------------------------
 
-    
-    async function loadDashboard() {
-        try {
-            const data = await makeGraphQLRequest(QUERY);
-            console.log('API Response:', data);
-            const user = data.data.user[0];
-            displayUserInfo(user);
-            // fetchTotalXp(token, user.login);
-            fetchAuditsGiven(user.id);  // Pass user.id here instead of user.login
-            displayAuditRatio(token, user.login);
-        } catch (error) {
-            console.error('Error:', error);
-            if (error.response?.status === 401) {
-                window.location.href = 'index.html';
+    async function fetchXpPerProject() {
+        const query = `
+        query{
+            transaction(where: {
+                type: {_eq: "xp"},
+                object: {
+                    type: {_eq: "project"}
+                }
+            }) {
+                amount
+                path
+                createdAt
+                object {
+                    name 
+                    type
+                }
             }
+        }`;
+     
+        try {
+            const data = await makeGraphQLRequest(query);
+            const transactions = data.data.transaction;
+     
+            const xpPerProj = {};
+            transactions.forEach(t => {
+                const projectPath = t.path;
+                if (!xpPerProj[projectPath]) {
+                    xpPerProj[projectPath] = 0;
+                }
+                xpPerProj[projectPath] += t.amount;
+            });
+     
+            const chartData = Object.entries(xpPerProj)
+                .map(([path, amount]) => ({
+                    project: path.split('/').pop(),
+                    xp: amount
+                }))
+                .sort((a, b) => b.xp - a.xp);
+     
+            const svgContainer = document.getElementById('xp-chart');
+            const width = svgContainer.clientWidth;
+            const height = svgContainer.clientHeight;
+            const margin = { top: 30, right: 30, bottom: 80, left: 70 }; 
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+     
+            const maxXP = Math.max(...chartData.map(d => d.xp));
+            const barWidth = chartWidth / chartData.length;
+     
+            let svg = `
+            <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}">
+                <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#EC4899" />
+                        <stop offset="100%" stop-color="#BE185D" />
+                    </linearGradient>
+                </defs>
+                <g transform="translate(${margin.left}, ${margin.top})">`;
+     
+            // Y-axis grid lines and labels
+            const yTicks = 5;
+            for (let i = 0; i <= yTicks; i++) {
+                const y = chartHeight * (i / yTicks);
+                const xpValue = Math.round((maxXP * (1 - i / yTicks)));
+                svg += `
+                    <line 
+                        x1="0" 
+                        y1="${y}" 
+                        x2="${chartWidth}" 
+                        y2="${y}" 
+                        stroke="#374151" 
+                        stroke-dasharray="2,2"
+                    />
+                    <text 
+                        x="-10" 
+                        y="${y}" 
+                        text-anchor="end" 
+                        alignment-baseline="middle"
+                        class="fill-gray-400 text-xs"
+                    >${xpValue}</text>
+                `;
+            }
+     
+            // Bars and X-axis labels
+            chartData.forEach((d, i) => {
+                const barHeight = (d.xp / maxXP) * chartHeight;
+                svg += `
+                    <g>
+                        <rect
+                            x="${i * barWidth + 5}"
+                            y="${chartHeight - barHeight}"
+                            width="${barWidth - 10}"
+                            height="${barHeight}"
+                            fill="url(#barGradient)"
+                            rx="4"
+                            filter="drop-shadow(0 4px 6px rgb(0 0 0 / 0.1))"
+                            class="transition-all duration-300 hover:opacity-80"
+                        >
+                            <title>${d.project}: ${d.xp.toLocaleString()} XP</title>
+                        </rect>
+                        <text
+                            x="${i * barWidth + barWidth/2}"
+                            y="${chartHeight + 30}"
+                            text-anchor="middle"
+                            transform="rotate(-45, ${i * barWidth + barWidth/2}, ${chartHeight + 30})"
+                            class="fill-gray-300 text-sm font-medium"
+                        >${d.project}</text>
+                    </g>
+                `;
+            });
+     
+            // Chart title
+            svg += `
+            </g>
+            </svg>`;
+     
+            svgContainer.innerHTML = svg;
+     
+        } catch (error) {
+            console.error('Error fetching XP per project:', error);
         }
-    }
-    //--------------------------------------------------AUDITS DONE AND RECIEVED-------------------------------------------------------------------
+     }
+    // ---------------------------------------------------------------------------------
+
+    // -------------------------------AUDITS DONE AND RECIEVED--------------------------
     function calculateTotalAmount(transactions) {
         return transactions.reduce((total, t) => total + t.amount, 0);
     }
@@ -154,54 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching audit data:', error);
         }
     }
-
-    //--------------------------------------------------TOTAL XP FETCHED----------------------------------------------------
-    async function fetchTotalXp(token, username) {
-        const qstring = `{
-            user(where: {login: {_eq: "${username}"}}) {
-                transactions(
-                    where: {_and: [{object: {type: {_eq: "project"}}}, {user: {login: {_eq: "${username}"}}}, {type: {_eq: "xp"}}]}
-                    order_by: {amount: desc}
-                ) {
-                    amount
-                    object {
-                        name
-                    }
-                }
-            }
-        }`;
-
-        const response = await fetch('https://learn.reboot01.com/api/graphql-engine/v1/graphql', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ query: qstring })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        let total = 0;
-        for (let i = 0; i < data.data.user[0].transactions.length; i++) {
-            total += data.data.user[0].transactions[i].amount;
-        }
-        const xpChart = document.getElementById('xp-chart');
-        total = total / 1000; //kb
-        xpChart.innerHTML = `
-            <p class="text-lg">Total XP: ${total.toLocaleString()} KB</p>
-        `;
-    }
-
-    //--------------------------------------------------USER INFO-----------------------------------------------------------
-
-    //----------------------------------------------------------------------------------------------------------------------
-
-    //--------------------------------------------------AUDITS CHART----------------------------------------------------
+    //-------------------------------AUDITS CHART-----------------------------
     async function fetchAuditsGiven(userid) {
         const query = `
             query FetchAudits($userid: Int!) {
@@ -324,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return path;
     }
     
-    function createLabel(x, y, text, color, percentage) {
+    function createLabel(x, y, text, color) {
         const labelGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         
         // Background rectangle
@@ -353,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
         return labelGroup;
     }
-    //---------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------
 
     function displayUserInfo(user) {
         document.getElementById('username').textContent = `${user.login}`;
@@ -372,6 +434,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
 
+    async function loadDashboard() {
+        try {
+            const data = await makeGraphQLRequest(QUERY);
+            console.log('API Response:', data);
+            const user = data.data.user[0];
+            displayUserInfo(user);
+            // fetchTotalXp(token, user.login);
+            fetchAuditsGiven(user.id);  // Pass user.id here instead of user.login
+            displayAuditRatio(token, user.login);
+            fetchXpPerProject();
+        } catch (error) {
+            console.error('Error:', error);
+            if (error.response?.status === 401) {
+                window.location.href = 'index.html';
+            }
+        }
+    }
     loadDashboard();
 
 
