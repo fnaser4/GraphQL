@@ -47,129 +47,124 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------XP Per Project------------------------------
-
     async function fetchXpPerProject() {
-            const query = `
-            query {
-                transaction(where: {
-                    type: {_eq: "xp"},
-                    object: {
-                        type: {_eq: "project"}
-                    }
-                }) {
-                    amount
-                    path
-                    createdAt
-                    object {
-                        name 
-                        type
-                    }
+        const query = `
+        query {
+            transaction(where: {
+                type: {_eq: "xp"},
+                object: {
+                    type: {_eq: "project"}
                 }
-            }`;
-         
-            try {
-                const data = await makeGraphQLRequest(query);
-                const transactions = data.data.transaction;
-         
-                const xpPerProj = {};
-                transactions.forEach(t => {
-                    const projectPath = t.path;
-                    if (!xpPerProj[projectPath]) {
-                        xpPerProj[projectPath] = 0;
-                    }
-                    xpPerProj[projectPath] += t.amount;
-                });
-         
-                const chartData = Object.entries(xpPerProj)
-                    .map(([path, amount]) => ({
-                        project: path.split('/').pop(),
-                        xp: amount
-                    }))
-                    .sort((a, b) => b.xp - a.xp)
-                    .slice(0, 5); // Only take top 5 projects
-        
-                const svgContainer = document.getElementById('xp-chart');
-                const width = svgContainer.clientWidth;
-                const height = svgContainer.clientHeight;
-                const margin = { top: 30, right: 30, bottom: 80, left: 70 }; 
-                const chartWidth = width - margin.left - margin.right;
-                const chartHeight = height - margin.top - margin.bottom;
-         
-                const maxXP = Math.max(...chartData.map(d => d.xp));
-                const barWidth = chartWidth / 5; // Adjusted for 5 bars
-         
-                let svg = `
-                <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}">
-                    <defs>
-                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#EC4899" />
-                            <stop offset="100%" stop-color="#BE185D" />
-                        </linearGradient>
-                    </defs>
-                    <g transform="translate(${margin.left}, ${margin.top})">`;
-         
-                // Y-axis grid lines and labels
-                const yTicks = 5;
-                for (let i = 0; i <= yTicks; i++) {
-                    const y = chartHeight * (i / yTicks);
-                    const xpValue = Math.round((maxXP * (1 - i / yTicks)));
-                    svg += `
-                        <line 
-                            x1="0" 
-                            y1="${y}" 
-                            x2="${chartWidth}" 
-                            y2="${y}" 
-                            stroke="#374151" 
-                            stroke-dasharray="2,2"
-                        />
-                        <text 
-                            x="-10" 
-                            y="${y}" 
-                            text-anchor="end" 
-                            alignment-baseline="middle"
-                            class="fill-gray-400 text-xs"
-                        >${xpValue}</text>
-                    `;
+            }) {
+                amount
+                path
+                createdAt
+                object {
+                    name 
+                    type
                 }
-         
-                // Bars and X-axis labels
-                chartData.forEach((d, i) => {
-                    const barHeight = (d.xp / maxXP) * chartHeight;
-                    svg += `
-                        <g>
-                            <rect
-                                x="${i * barWidth + 5}"
-                                y="${chartHeight - barHeight}"
-                                width="${barWidth - 10}"
-                                height="${barHeight}"
-                                fill="url(#barGradient)"
-                                rx="4"
-                                filter="drop-shadow(0 4px 6px rgb(0 0 0 / 0.1))"
-                                class="transition-all duration-300 hover:opacity-80"
-                            >
-                                <title>${d.project}: ${d.xp.toLocaleString()} XP</title>
-                            </rect>
-                            <text
-                                x="${i * barWidth + barWidth/2}"
-                                y="${chartHeight + 30}"
-                                text-anchor="middle"
-                                transform="rotate(-45, ${i * barWidth + barWidth/2}, ${chartHeight + 30})"
-                                class="fill-gray-300 text-sm font-medium"
-                            >${d.project}</text>
-                        </g>
-                    `;
-                });
-        
-                svg += `
-                </g>
-                </svg>`;
-         
-                svgContainer.innerHTML = svg;
-         
-            } catch (error) {
-                console.error('Error fetching XP per project:', error);
             }
-     }
+        }`;
+     
+        try {
+            const data = await makeGraphQLRequest(query);
+            const transactions = data.data.transaction;
+     
+            const xpPerProj = {};
+            transactions.forEach(t => {
+                const projectPath = t.path;
+                if (!xpPerProj[projectPath]) {
+                    xpPerProj[projectPath] = 0;
+                }
+                xpPerProj[projectPath] += t.amount;
+            });
+     
+            const chartData = Object.entries(xpPerProj)
+                .map(([path, amount]) => ({
+                    project: path.split('/').pop(),
+                    xp: amount
+                }))
+                .sort((a, b) => b.xp - a.xp)
+                .slice(0, 5);
+    
+            const svgContainer = document.getElementById('xp-chart');
+            const width = svgContainer.clientWidth;
+            const height = svgContainer.clientHeight;
+            const margin = { top: 30, right: 30, bottom: 40, left: 150 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+    
+            const barHeight = chartHeight / 5;
+            const maxXP = Math.max(...chartData.map(d => d.xp));
+    
+            let svg = `
+            <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}">
+                <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#BE185D" />
+                        <stop offset="100%" stop-color="#EC4899" />
+                    </linearGradient>
+                </defs>
+                <g transform="translate(${margin.left}, ${margin.top})">`;
+    
+            // X-axis grid lines and labels
+            const xTicks = 5;
+            for (let i = 0; i <= xTicks; i++) {
+                const x = chartWidth * (i / xTicks);
+                const xpValue = Math.round((maxXP * (i / xTicks)));
+                svg += `
+                    <line 
+                        x1="${x}" 
+                        y1="0" 
+                        x2="${x}" 
+                        y2="${chartHeight}" 
+                        stroke="#374151" 
+                        stroke-dasharray="2,2"
+                    />
+                    <text 
+                        x="${x}" 
+                        y="${chartHeight + 20}" 
+                        text-anchor="middle"
+                        class="fill-gray-400 text-xs"
+                    >${xpValue.toLocaleString()}</text>
+                `;
+            }
+    
+            // Bars and labels
+            chartData.forEach((d, i) => {
+                const barWidth = (d.xp / maxXP) * chartWidth;
+                svg += `
+                    <g>
+                        <rect
+                            x="0"
+                            y="${i * barHeight + 5}"
+                            width="${barWidth}"
+                            height="${barHeight - 10}"
+                            fill="url(#barGradient)"
+                            rx="4"
+                            filter="drop-shadow(0 4px 6px rgb(0 0 0 / 0.1))"
+                            class="transition-all duration-300 hover:opacity-80"
+                        >
+                            <title>${d.project}: ${d.xp.toLocaleString()} XP</title>
+                        </rect>
+                        <text
+                            x="-10"
+                            y="${i * barHeight + barHeight/2}"
+                            text-anchor="end"
+                            alignment-baseline="middle"
+                            class="fill-gray-300 text-sm font-medium"
+                        >${d.project}</text>
+                    </g>
+                `;
+            });
+    
+            svg += `</g></svg>`;
+            svgContainer.innerHTML = svg;
+    
+        } catch (error) {
+            console.error('Error fetching XP per project:', error);
+        }
+    }
     // ---------------------------------------------------------------------------------
 
     // -------------------------------AUDITS DONE AND RECIEVED--------------------------
