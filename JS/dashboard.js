@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token').replace(/"/g, '');  
+    console.log("token", token);
     if (!token) {
         window.location.href = 'index.html';
         return;
