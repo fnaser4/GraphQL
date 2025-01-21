@@ -5,6 +5,22 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'index.html';
         return;
     }
+    async function loadDashboard() {
+        try {
+            const data = await makeGraphQLRequest(QUERY);
+            console.log('API Response:', data);
+            const user = data.data.user[0];
+            displayUserInfo(user);
+            fetchAuditsGiven(user.id);  
+            displayAuditRatio(token, user.login);
+            fetchXpPerProject();
+        } catch (error) {
+            console.error('Error:', error);
+            if (error.response?.status === 401) {
+                window.location.href = 'index.html';
+            }
+        }
+    }
 
     const QUERY = `
         {
@@ -68,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
      
         try {
             const data = await makeGraphQLRequest(query);
+            // console.log(data);
             const transactions = data.data.transaction;
      
             const xpPerProj = {};
@@ -107,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </defs>
                 <g transform="translate(${margin.left}, ${margin.top})">`;
     
-            // X-axis grid lines and labels
+            // X-axis 
             const xTicks = 5;
             for (let i = 0; i <= xTicks; i++) {
                 const x = chartWidth * (i / xTicks);
@@ -168,15 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------------------------------
 
     // -------------------------------AUDITS DONE AND RECIEVED--------------------------
-    function calculateTotalAmount(transactions) {
-        return transactions.reduce((total, t) => total + t.amount, 0);
-    }
-    
-    function calculateRatio(auditsMade, auditsReceived) {
-        if (auditsReceived === 0) return 0;
-        return (auditsMade / auditsReceived).toFixed(2);
-    }
-    
     async function fetchAuditsReceived(token, username) {
         const query = `{
             user(where: {login: {_eq: "${username}"}}) {
@@ -207,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         return data.data.user[0].transactions;
     }
-    
     async function fetchAuditsMade(token, username) {
         const query = `{
             user(where: {login: {_eq: "${username}"}}) {
@@ -238,10 +245,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         return data.data.user[0].transactions;
     }
+    // adds all the audits
+    function calculateTotalAmount(transactions) {
+        return transactions.reduce((total, t) => total + t.amount, 0);
+    }
+    // calculates the ratio of the audits 
+    function calculateRatio(auditsMade, auditsReceived) {
+        if (auditsReceived === 0) return 0;
+        return (auditsMade / auditsReceived).toFixed(2);
+    }
     
     async function displayAuditRatio(token, username) {
         try {
-            console.log('Fetching audits received...');
+            console.log('Fetching audits...');
             const auditsReceived = await fetchAuditsReceived(token, username);
             const auditsMade = await fetchAuditsMade(token, username);
             const totalReceived = calculateTotalAmount(auditsReceived);
@@ -259,7 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching audit data:', error);
         }
     }
-    //-------------------------------AUDITS CHART-----------------------------
+    //------------------------------------------------------------------------------------------
+    //---------------------------------------AUDITS CHART---------------------------------------
     async function fetchAuditsGiven(userid) {
         const query = `
             query FetchAudits($userid: Int!) {
@@ -270,11 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         `;
 
-        const variables = { userid: parseInt(userid, 10) };  // Ensure userid is an integer
-
+        const variables = { userid: parseInt(userid, 10) };  // make sure id is an int
         const data = await makeGraphQLRequest(query, variables);
         displayPieChart(data.data.audit);
-        console.log("audits", data);
+        console.log("audits given", data);
     }
 
     async function displayPieChart(audits) {
@@ -411,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
         return labelGroup;
     }
-    //------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
 
     function displayUserInfo(user) {
         document.getElementById('username').textContent = `${user.login}`;
@@ -429,25 +445,5 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdown.classList.toggle("hidden");
     });
     
-
-    async function loadDashboard() {
-        try {
-            const data = await makeGraphQLRequest(QUERY);
-            console.log('API Response:', data);
-            const user = data.data.user[0];
-            displayUserInfo(user);
-            // fetchTotalXp(token, user.login);
-            fetchAuditsGiven(user.id);  // Pass user.id here instead of user.login
-            displayAuditRatio(token, user.login);
-            fetchXpPerProject();
-        } catch (error) {
-            console.error('Error:', error);
-            if (error.response?.status === 401) {
-                window.location.href = 'index.html';
-            }
-        }
-    }
     loadDashboard();
-
-
 });
