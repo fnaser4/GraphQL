@@ -142,7 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         x="${x}" 
                         y="${chartHeight + 20}" 
                         text-anchor="middle"
-                        class="fill-gray-400 text-xs"
+                        fill="white"
+                        class="text-xs"
                     >${xpValue.toLocaleString()}</text>
                 `;
             }
@@ -169,7 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             y="${i * barHeight + barHeight/2}"
                             text-anchor="end"
                             alignment-baseline="middle"
-                            class="fill-gray-300 text-sm font-medium"
+                            fill="white"
+                            class="text-sm font-medium"
                         >${d.project}</text>
                     </g>
                 `;
